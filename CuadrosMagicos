@@ -1,0 +1,134 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define MAX 21 // Tamaño máximo de la matriz
+
+// Función para inicializar la matriz con ceros
+void inicializarMatriz(int matriz[MAX][MAX], int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            matriz[i][j] = 0;
+        }
+    }
+}
+
+// Definición de tipo de función para métodos de llenado
+typedef int (*MetodoLlenado)(int[MAX][MAX], int, int, int);
+
+// Método Siamés clásico: mueve en diagonal arriba-derecha y ajusta si está ocupado
+int metodoSiames(int matriz[MAX][MAX], int n, int fila, int columna) {
+    int nuevaFila = (fila - 1 + n) % n;
+    int nuevaColumna = (columna + 1) % n;
+    if (matriz[nuevaFila][nuevaColumna] != 0) {
+        nuevaFila = (fila + 1) % n;
+        nuevaColumna = columna;
+    }
+    return nuevaFila * MAX + nuevaColumna;
+}
+
+// Método en L: movimiento en forma de caballo del ajedrez
+int metodoEnL(int matriz[MAX][MAX], int n, int fila, int columna) {
+    int nuevaFila = (fila - 2 + n) % n;
+    int nuevaColumna = (columna + 1) % n;
+    if (matriz[nuevaFila][nuevaColumna] != 0) {
+        nuevaFila = (fila + 1) % n;
+        nuevaColumna = columna;
+    }
+    return nuevaFila * MAX + nuevaColumna;
+}
+
+// Método en Espiral: rellena en sentido de espiral alrededor del centro
+int metodoEspiral(int matriz[MAX][MAX], int n, int fila, int columna) {
+    int direcciones[4][2] = {{0,1}, {1,0}, {0,-1}, {-1,0}};
+    static int dir = 0;
+    int nuevaFila = fila + direcciones[dir][0];
+    int nuevaColumna = columna + direcciones[dir][1];
+    if (nuevaFila < 0 || nuevaFila >= n || nuevaColumna < 0 || nuevaColumna >= n || matriz[nuevaFila][nuevaColumna] != 0) {
+        dir = (dir + 1) % 4;
+        nuevaFila = fila + direcciones[dir][0];
+        nuevaColumna = columna + direcciones[dir][1];
+    }
+    return nuevaFila * MAX + nuevaColumna;
+}
+
+// Método Alterno de Diagonales: variante del método siamés
+int metodoAlterno(int matriz[MAX][MAX], int n, int fila, int columna) {
+    int nuevaFila = (fila - 1 + n) % n;
+    int nuevaColumna = (columna - 1 + n) % n;
+    if (matriz[nuevaFila][nuevaColumna] != 0) {
+        nuevaFila = (fila + 1) % n;
+    }
+    return nuevaFila * MAX + nuevaColumna;
+}
+
+// Función para llenar la matriz con el método seleccionado
+void llenarCuadroMagico(int matriz[MAX][MAX], int n, MetodoLlenado metodo, int metodoSeleccionado) {
+    srand(time(NULL)); // Inicializa la semilla para números aleatorios
+    int fila, columna;
+    
+    // Si es el método Siamés, empezamos en la columna central de la primera fila
+    if (metodoSeleccionado == 1) {
+        fila = 0;
+        columna = n / 2;
+    } else { // Para otros métodos, elegir una posición aleatoria
+        fila = rand() % n;
+        columna = rand() % n;
+    }
+    
+    for (int num = 1; num <= n * n; num++) {
+        matriz[fila][columna] = num;
+        int posicion = metodo(matriz, n, fila, columna);
+        fila = posicion / MAX;
+        columna = posicion % MAX;
+    }
+}
+
+// Función para imprimir la matriz en pantalla
+void imprimirMatriz(int matriz[MAX][MAX], int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%3d ", matriz[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+int main() {
+    int n;
+    printf("Ingrese el tamaño del cuadro mágico (impar entre 3 y 21): ");
+    scanf("%d", &n);
+    if (n < 3 || n > 21 || n % 2 == 0) {
+        printf("Tamaño inválido. Debe ser un número impar entre 3 y 21.\n");
+        return 1;
+    }
+    
+    int matriz[MAX][MAX];
+    inicializarMatriz(matriz, n);
+    
+    // Selección del método de llenado
+    printf("Selecciona el método de llenado:\n");
+    printf("1 - Método Siamés\n");
+    printf("2 - Movimiento en L\n");
+    printf("3 - Espiral\n");
+    printf("4 - Alterno de Diagonales\n");
+    int opcion;
+    scanf("%d", &opcion);
+    
+    MetodoLlenado metodo;
+    switch (opcion) {
+        case 1: metodo = metodoSiames; break;
+        case 2: metodo = metodoEnL; break;
+        case 3: metodo = metodoEspiral; break;
+        case 4: metodo = metodoAlterno; break;
+        default:
+            printf("Opción inválida.\n");
+            return 1;
+    }
+    
+    // Llenado del cuadro mágico e impresión del resultado
+    llenarCuadroMagico(matriz, n, metodo, opcion);
+    imprimirMatriz(matriz, n);
+    
+    return 0;
+}
