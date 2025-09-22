@@ -438,7 +438,10 @@ int main(int argc, char *argv[]) {
     
     if (!gtk_builder_add_from_file(builder, "cuadros_magicos_interactivo.glade", &error)) {
         g_printerr("Error cargando UI: %s\n", error->message);
+        g_printerr("Asegúrese de que el archivo cuadros_magicos_interactivo.glade esté en el directorio actual\n");
         g_clear_error(&error);
+        g_object_unref(builder);
+        g_free(app);
         return 1;
     }
     
@@ -472,17 +475,25 @@ int main(int argc, char *argv[]) {
     g_signal_connect(app->auto_complete_button, "clicked", G_CALLBACK(on_auto_complete_button_clicked), app);
     g_signal_connect(app->reset_button, "clicked", G_CALLBACK(on_reset_button_clicked), app);
     
-    // Agregar CSS para estilos
+    // Agregar CSS para estilos (compatible con Linux)
     GtkCssProvider *css_provider = gtk_css_provider_new();
     const char *css_data = 
         "label#empty-cell { background-color: #f0f0f0; border: 1px solid #ccc; }"
         "label#filled-cell { background-color: #e8f4fd; border: 1px solid #0078d4; }"
         "label#current-cell { background-color: #ffeb3b; border: 2px solid #ff9800; font-weight: bold; }";
     
-    gtk_css_provider_load_from_data(css_provider, css_data, -1, NULL);
-    gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
-                                             GTK_STYLE_PROVIDER(css_provider),
-                                             GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    GError *css_error = NULL;
+    if (!gtk_css_provider_load_from_data(css_provider, css_data, -1, &css_error)) {
+        if (css_error) {
+            g_warning("Error cargando CSS: %s", css_error->message);
+            g_clear_error(&css_error);
+        }
+    } else {
+        gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
+                                                 GTK_STYLE_PROVIDER(css_provider),
+                                                 GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    }
+    g_object_unref(css_provider);
     
     // Inicializar texto de sumas
     GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(app->sums_textview));
@@ -500,3 +511,4 @@ int main(int argc, char *argv[]) {
     
     return 0;
 }
+

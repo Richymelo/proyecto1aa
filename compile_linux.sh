@@ -103,7 +103,7 @@ compile_gtk() {
         $(pkg-config --cflags gtk+-3.0) \
         main_gtk_interactivo.c \
         $(pkg-config --libs gtk+-3.0) \
-        -o cuadros_magicos_interactivo
+        -o cuadros_magicos_interactivo 2>&1
     
     interactive_ok=$?
     
@@ -116,8 +116,19 @@ compile_gtk() {
     
     if [ $interactive_ok -eq 0 ]; then
         echo -e "${GREEN}✓ Versión GTK interactiva compilada exitosamente${NC}"
+        # Verificar que el ejecutable realmente existe y es ejecutable
+        if [ -x "./cuadros_magicos_interactivo" ]; then
+            echo -e "${GREEN}  Ejecutable verificado: ./cuadros_magicos_interactivo${NC}"
+        else
+            echo -e "${YELLOW}  ⚠️ Ejecutable creado pero sin permisos de ejecución${NC}"
+            chmod +x ./cuadros_magicos_interactivo 2>/dev/null
+        fi
     else
         echo -e "${RED}❌ Error compilando versión GTK interactiva${NC}"
+        echo -e "${YELLOW}  Posibles soluciones:${NC}"
+        echo "    - Verifique que cuadros_magicos_interactivo.glade existe"
+        echo "    - Reinstale las dependencias GTK+3"
+        echo "    - Use el script de prueba: ./test_compile_linux.sh"
     fi
     
     if [ $interactive_ok -eq 0 ]; then
