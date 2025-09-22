@@ -74,27 +74,66 @@ compile_console() {
 
 # Función para compilar versión GTK
 compile_gtk() {
-    echo -e "${BLUE}Compilando versión GTK...${NC}"
+    echo -e "${BLUE}Compilando versiones GTK...${NC}"
     
-    # Verificar archivo glade
+    # Verificar archivos glade
     if [ ! -f "cuadros_magicos.glade" ]; then
         echo -e "${RED}ERROR: No se encuentra cuadros_magicos.glade${NC}"
         return 1
     fi
     
+    if [ ! -f "cuadros_magicos_interactivo.glade" ]; then
+        echo -e "${RED}ERROR: No se encuentra cuadros_magicos_interactivo.glade${NC}"
+        return 1
+    fi
+    
+    # Compilar versión simplificada
+    echo "Compilando versión simplificada..."
     gcc -Wall -Wextra -std=c99 \
         $(pkg-config --cflags gtk+-3.0) \
         main_gtk_simple.c \
-        -o cuadros_magicos_gtk \
-        $(pkg-config --libs gtk+-3.0)
+        $(pkg-config --libs gtk+-3.0) \
+        -o cuadros_magicos_gtk_simple
     
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓ Versión GTK compilada exitosamente${NC}"
-        echo "Ejecutable: ./cuadros_magicos_gtk"
-        echo -e "${YELLOW}NOTA: Asegúrese de que cuadros_magicos.glade esté en el mismo directorio${NC}"
+    simple_ok=$?
+    
+    # Compilar versión interactiva
+    echo "Compilando versión interactiva..."
+    gcc -Wall -Wextra -std=c99 \
+        $(pkg-config --cflags gtk+-3.0) \
+        main_gtk_interactivo.c \
+        $(pkg-config --libs gtk+-3.0) \
+        -o cuadros_magicos_interactivo
+    
+    interactive_ok=$?
+    
+    # Reportar resultados
+    if [ $simple_ok -eq 0 ]; then
+        echo -e "${GREEN}✓ Versión GTK simplificada compilada exitosamente${NC}"
+    else
+        echo -e "${RED}❌ Error compilando versión GTK simplificada${NC}"
+    fi
+    
+    if [ $interactive_ok -eq 0 ]; then
+        echo -e "${GREEN}✓ Versión GTK interactiva compilada exitosamente${NC}"
+    else
+        echo -e "${RED}❌ Error compilando versión GTK interactiva${NC}"
+    fi
+    
+    if [ $interactive_ok -eq 0 ]; then
+        echo ""
+        echo -e "${GREEN}🎉 Ejecutables creados:${NC}"
+        echo "  - ./cuadros_magicos_gtk_simple (versión simplificada)"
+        echo "  - ./cuadros_magicos_interactivo (versión interactiva - RECOMENDADA)"
+        echo ""
+        echo -e "${YELLOW}NOTA: Asegúrese de que los archivos .glade estén en el mismo directorio${NC}"
+        return 0
+    elif [ $simple_ok -eq 0 ]; then
+        echo ""
+        echo -e "${YELLOW}Solo versión simplificada disponible${NC}"
+        echo "Ejecutable: ./cuadros_magicos_gtk_simple"
         return 0
     else
-        echo -e "${RED}❌ Error compilando versión GTK${NC}"
         return 1
     fi
 }
@@ -134,11 +173,32 @@ main() {
             if check_gtk; then
                 compile_gtk
                 if [ $? -eq 0 ]; then
-                    read -p "¿Ejecutar versión GTK? (s/n): " ejecutar
-                    if [[ $ejecutar =~ ^[Ss]$ ]]; then
-                        echo ""
-                        ./cuadros_magicos_gtk
-                    fi
+                    echo ""
+                    echo "Versiones disponibles:"
+                    echo "1) Versión interactiva (recomendada)"
+                    echo "2) Versión simplificada"
+                    read -p "¿Qué versión ejecutar? (1/2/n): " version
+                    case $version in
+                        1)
+                            if [ -f "./cuadros_magicos_interactivo" ]; then
+                                echo "Iniciando versión interactiva..."
+                                ./cuadros_magicos_interactivo
+                            else
+                                echo -e "${RED}Versión interactiva no disponible${NC}"
+                            fi
+                            ;;
+                        2)
+                            if [ -f "./cuadros_magicos_gtk_simple" ]; then
+                                echo "Iniciando versión simplificada..."
+                                ./cuadros_magicos_gtk_simple
+                            else
+                                echo -e "${RED}Versión simplificada no disponible${NC}"
+                            fi
+                            ;;
+                        *)
+                            echo "No ejecutando..."
+                            ;;
+                    esac
                 fi
             fi
             ;;
@@ -165,7 +225,7 @@ main() {
             ;;
         4)
             echo "Limpiando archivos compilados..."
-            rm -f cuadros_magicos_console cuadros_magicos_gtk *.o
+            rm -f cuadros_magicos_console cuadros_magicos_gtk cuadros_magicos_gtk_simple cuadros_magicos_interactivo *.o
             echo -e "${GREEN}✓ Archivos limpiados${NC}"
             ;;
         5)
@@ -197,3 +257,4 @@ chmod +x "$0" 2>/dev/null
 
 # Ejecutar función principal
 main
+

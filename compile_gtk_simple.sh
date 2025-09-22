@@ -71,3 +71,4 @@ else
     echo "Verifique que todas las dependencias estén instaladas"
     exit 1
 fi
+
