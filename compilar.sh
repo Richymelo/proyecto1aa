@@ -35,3 +35,4 @@ echo "  ./cuadros_magicos_gtk       (Versión automática)"
 echo "  ./cuadros_magicos_completo  (Versión paso a paso)"
 echo "  ./cuadros_magicos_consola   (Versión de consola)"
 echo ""
+

@@ -93,3 +93,4 @@ proyecto1aa/
 - La suma mágica para un cuadro n×n es: n(n²+1)/2
 - Solo se soportan tamaños impares (limitación de los algoritmos implementados)
 - Las interfaces gráficas usan GTK+3 para compatibilidad con sistemas Linux modernos
+

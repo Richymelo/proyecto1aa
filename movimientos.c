@@ -54,3 +54,4 @@ int metodoAlterno(int matriz[max][max], int n, int fila, int columna) {
     }
     return nuevaFila * max + nuevaColumna;
 }
+
