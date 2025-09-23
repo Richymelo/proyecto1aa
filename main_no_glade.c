@@ -165,3 +165,4 @@ int main(int argc, char *argv[]) {
     g_free(app);
     return 0;
 }
+

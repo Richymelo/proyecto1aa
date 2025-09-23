@@ -74,3 +74,4 @@ rm -f gdb_commands.txt segfault_log.txt
 echo "=============================================="
 echo " FIN DEL DEBUG"
 echo "=============================================="
+
