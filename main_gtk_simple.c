@@ -1,6 +1,9 @@
 /*
- * Versión GTK simplificada del Generador de Cuadros Mágicos
- * Incluye todo el código necesario en un solo archivo para evitar problemas de linkeo
+ * Generador de Cuadros Mágicos - Versión GTK
+ * Proyecto de Análisis de Algoritmos
+ * 
+ * Implementación gráfica que genera cuadros mágicos automáticamente
+ * usando diferentes algoritmos de llenado.
  */
 
 #include <gtk/gtk.h>

@@ -1,14 +1,9 @@
 /*
- * Generador de Cuadros Mágicos Interactivo - Versión Completa
- * Sin dependencia de archivos .glade - Interfaz creada programáticamente
+ * Generador de Cuadros Mágicos Interactivo
+ * Proyecto de Análisis de Algoritmos
  * 
- * Características:
- * - Orden del cuadro: número impar entre 3 y 21
- * - 4+ métodos de llenado diferentes
- * - Posición inicial aleatoria
- * - Modo paso a paso y modo automático
- * - Sumas parciales en tiempo real
- * - Interfaz estéticamente agradable
+ * Versión interactiva que permite visualizar paso a paso
+ * la construcción de cuadros mágicos usando diferentes algoritmos.
  */
 
 #include <gtk/gtk.h>
@@ -551,8 +546,6 @@ void on_window_destroy(GtkWidget *widget, gpointer data) {
 // ============= FUNCIÓN PRINCIPAL =============
 
 int main(int argc, char *argv[]) {
-    printf("INFO: Iniciando Cuadros Mágicos Interactivos (Versión Completa)\n");
-    
     gtk_init(&argc, &argv);
     srand(time(NULL));
     
@@ -802,15 +795,6 @@ int main(int argc, char *argv[]) {
     
     // ===== MOSTRAR VENTANA =====
     gtk_widget_show_all(app->main_window);
-    
-    printf("INFO: Interfaz creada exitosamente\n");
-    printf("INFO: Características implementadas:\n");
-    printf("  - Orden del cuadro: 3-21 (números impares)\n");
-    printf("  - 4 métodos de llenado diferentes\n");
-    printf("  - Posición inicial aleatoria/optimizada\n");
-    printf("  - Modo paso a paso y automático\n");
-    printf("  - Sumas parciales en tiempo real\n");
-    printf("  - Interfaz estéticamente mejorada\n");
     
     // Iniciar loop principal
     gtk_main();
