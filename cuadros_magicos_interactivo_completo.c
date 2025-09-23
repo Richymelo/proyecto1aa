@@ -24,12 +24,10 @@
 // Enumeración de métodos
 typedef enum {
     METODO_SIAMES = 0,
-    METODO_LOUBER = 1,
-    METODO_L = 2,
-    METODO_CARACOL = 3,
-    METODO_DIAGONAL_PRINCIPAL = 4,
-    METODO_DIAGONAL_SECUNDARIA = 5,
-    NUM_METODOS = 6
+    METODO_L = 1,
+    METODO_DIAGONAL_PRINCIPAL = 2,
+    METODO_DIAGONAL_SECUNDARIA = 3,
+    NUM_METODOS = 4
 } MetodoLlenado;
 
 // Estructura principal de la aplicación
@@ -84,9 +82,7 @@ typedef struct {
 // Descripciones de los métodos
 static const char* method_descriptions[] = {
     "Método Siamés: Subir y derecha, si ocupado bajar",
-    "Método De la Loubère: Bajar y izquierda, si ocupado subir",
     "Método en L: Subir 2 y derecha, si ocupado bajar",
-    "Método Caracol: Bajar y derecha, si ocupado subir y izquierda",
     "Método Diagonal Principal: Llenado por diagonal principal",
     "Método Diagonal Secundaria: Llenado por diagonal secundaria"
 };
@@ -104,16 +100,6 @@ void metodo_siames(AppData *app, int *new_row, int *new_col) {
     }
 }
 
-// Método De la Loubère
-void metodo_louber(AppData *app, int *new_row, int *new_col) {
-    *new_row = (app->current_row + 1) % app->size;
-    *new_col = (app->current_col - 1 + app->size) % app->size;
-    
-    if (app->matrix[*new_row][*new_col] != 0) {
-        *new_row = (app->current_row - 1 + app->size) % app->size;
-        *new_col = app->current_col;
-    }
-}
 
 // Método en L
 void metodo_l(AppData *app, int *new_row, int *new_col) {
@@ -126,16 +112,6 @@ void metodo_l(AppData *app, int *new_row, int *new_col) {
     }
 }
 
-// Método Caracol
-void metodo_caracol(AppData *app, int *new_row, int *new_col) {
-    *new_row = (app->current_row + 1) % app->size;
-    *new_col = (app->current_col + 1) % app->size;
-    
-    if (app->matrix[*new_row][*new_col] != 0) {
-        *new_row = (app->current_row - 1 + app->size) % app->size;
-        *new_col = (app->current_col - 1 + app->size) % app->size;
-    }
-}
 
 // Método Diagonal Principal
 void metodo_diagonal_principal(AppData *app, int *new_row, int *new_col) {
@@ -208,10 +184,6 @@ void obtener_posicion_inicial(AppData *app) {
         case METODO_SIAMES:
             app->current_row = 0;
             app->current_col = app->size / 2;
-            break;
-        case METODO_LOUBER:
-            app->current_row = app->size / 2;
-            app->current_col = app->size - 1;
             break;
         case METODO_DIAGONAL_PRINCIPAL:
             app->current_row = 0;
@@ -496,14 +468,8 @@ void on_step_button_clicked(GtkButton *button, AppData *app) {
         case METODO_SIAMES:
             metodo_siames(app, &new_row, &new_col);
             break;
-        case METODO_LOUBER:
-            metodo_louber(app, &new_row, &new_col);
-            break;
         case METODO_L:
             metodo_l(app, &new_row, &new_col);
-            break;
-        case METODO_CARACOL:
-            metodo_caracol(app, &new_row, &new_col);
             break;
         case METODO_DIAGONAL_PRINCIPAL:
             metodo_diagonal_principal(app, &new_row, &new_col);
@@ -703,9 +669,7 @@ int main(int argc, char *argv[]) {
     
     app->method_combo = gtk_combo_box_text_new();
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(app->method_combo), "🔄 Método Siamés");
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(app->method_combo), "🔄 Método De la Loubère");
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(app->method_combo), "📐 Método en L");
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(app->method_combo), "🌀 Método Caracol");
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(app->method_combo), "📍 Diagonal Principal");
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(app->method_combo), "📍 Diagonal Secundaria");
     gtk_combo_box_set_active(GTK_COMBO_BOX(app->method_combo), 0);
@@ -802,10 +766,24 @@ int main(int argc, char *argv[]) {
     
     app->sums_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(app->sums_textview));
     
-    // Configurar fuente monoespaciada para el textview
-    PangoFontDescription *font_desc = pango_font_description_from_string("Monospace 11");
-    gtk_widget_override_font(app->sums_textview, font_desc);
-    pango_font_description_free(font_desc);
+    // Configurar fuente monoespaciada para el textview usando CSS (método moderno)
+    const char *font_css = 
+        "textview {"
+        "    font-family: 'Monospace';"
+        "    font-size: 11pt;"
+        "}";
+    
+    GtkCssProvider *font_provider = gtk_css_provider_new();
+    GError *font_error = NULL;
+    if (gtk_css_provider_load_from_data(font_provider, font_css, -1, &font_error)) {
+        gtk_style_context_add_provider(gtk_widget_get_style_context(app->sums_textview),
+                                     GTK_STYLE_PROVIDER(font_provider),
+                                     GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    } else {
+        g_warning("Error cargando CSS de fuente: %s", font_error->message);
+        g_clear_error(&font_error);
+    }
+    g_object_unref(font_provider);
     
     // ===== CONECTAR SEÑALES =====
     g_signal_connect(app->main_window, "destroy", G_CALLBACK(on_window_destroy), NULL);
@@ -828,7 +806,7 @@ int main(int argc, char *argv[]) {
     printf("INFO: Interfaz creada exitosamente\n");
     printf("INFO: Características implementadas:\n");
     printf("  - Orden del cuadro: 3-21 (números impares)\n");
-    printf("  - 6 métodos de llenado diferentes\n");
+    printf("  - 4 métodos de llenado diferentes\n");
     printf("  - Posición inicial aleatoria/optimizada\n");
     printf("  - Modo paso a paso y automático\n");
     printf("  - Sumas parciales en tiempo real\n");
@@ -843,3 +821,4 @@ int main(int argc, char *argv[]) {
     
     return 0;
 }
+
